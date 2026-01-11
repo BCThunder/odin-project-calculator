@@ -5,6 +5,7 @@ let num2 = "0";
 let resultNum = "0";
 let operator = "";
 let isFirstNum = true;
+let shouldResetOnNumber = false;
 
 const displayEl = document.querySelector(".bottom-right-text");
 const btns = document.querySelectorAll('.btn');
@@ -35,6 +36,10 @@ clearButton.addEventListener("click", () => {
 
 /* Event Handler Functions */
 function handleNumber(num) {
+    if (isFirstNum && shouldResetOnNumber) {
+        num1 = "0";
+        shouldResetOnNumber = false;
+    }
     if (isFirstNum && num1.length < MAX_DIGITS) {
         if (num1 == "0") { num1 = ""; }
         num1 += parseInt(num, 10);
@@ -48,9 +53,18 @@ function handleNumber(num) {
 }
 
 function handleOperator(op) {
+    // If we already have a pending operator and a second operand, fold the operation
+    if (!isFirstNum && num2 !== "0" && num2 !== "") {
+        resultNum = operate(num1, num2, operator);
+        resultNum = formatResult(resultNum);
+        num1 = resultNum.toString();
+        num2 = "0";
+        updateDisplay(num1);
+    }
+
     operator = op;
     isFirstNum = false;
-    updateDisplay(num2);
+    shouldResetOnNumber = false;
 }
 
 function handleClear() {
@@ -60,6 +74,7 @@ function handleClear() {
     } else {
         num2 = "0";
     }
+    shouldResetOnNumber = false;
     updateDisplay("0");
 }
 
@@ -71,6 +86,10 @@ function handleEqual() {
         num1 = resultNum.toString();
         operator = "";
         num2 = "0";
+        // After equals, treat the displayed result as the first number for next op,
+        // but reset it when the user starts typing a new number.
+        isFirstNum = true;
+        shouldResetOnNumber = true;
     }
 }
 
